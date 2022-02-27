@@ -76,38 +76,6 @@ chrome.webRequest.onBeforeRequest.addListener(
 
 // Make download
 
-/*
-// Replace download
-var downloadId;
-var replacing = 0;
-chrome.downloads.onDeterminingFilename.addListener(async function (downloadItem) {
-  console.log("replacing");
-  if (replacing == 0) {
-    replacing = 1;
-    downloadId = downloadItem.id;
-    let filename = downloadItem.filename;
-    console.log("filename with absolute local path ", filename);
-    let cancelled = false;
-    while (!cancelled) {
-      try {
-        await chrome.downloads.cancel(downloadItem.id);
-        cancelled = true;
-      } catch (error) {console.log("catched")}
-    }
-    try {
-      if (downloadItem.state == "complete") {
-        await chrome.downloads.removeFile(downloadItem.id);
-      }
-      await chrome.downloads.erase({ id: downloadItem.id });
-    } catch (error) {}
-    //await makeDownload("test.txt");
-    //replacing = 0;
-  }
-});*/
-
-var replacing = false;
-var filenameOrigin = "";
-
 async function makeDownload(name) {
   await chrome.downloads.download({
     url: "https://tls-sec.github.io/2019-2020/2020/01/19/projetslongs.html",
@@ -115,56 +83,24 @@ async function makeDownload(name) {
   });
 }
 
-var cp = 0;
-chrome.downloads.onDeterminingFilename.addListener(async function (
-  downloadItem,
-  suggest
-) {
-  try {
-    console.log("signal");
-    cp = cp + 1;
-    console.log(cp);
-    console.log("name0" + downloadItem.filename);
-    if (cp > 2) {
-      cp = 0;
-      return;
-    } else if (cp == 1) {
-      console.log("name1" + downloadItem.filename);
-      filenameOrigin = downloadItem.filename;
-    } else if (cp == 2) {
-      console.log("name2" + downloadItem.filename);
-      suggest({ filename: filenameOrigin, conflictAction: "overwrite" });
-    }
-  } catch (error) {
-    console.log("catched0");
-  }
-
-  console.log("filename with absolute local path ", filenameOrigin);
-  let cancelled = false;
-  while (!cancelled) {
-    try {
+var originalFilename;
+var cp = true;
+chrome.downloads.onChanged.addListener(async function (downloadItem) {
+  console.log("onChanged");
+  console.log(replaceProcedure);
+  console.log(downloadItem);
+  if (downloadItem.filename) {
+    if (cp) {
+      cp = false;
+      originalFilename = downloadItem.filename.current;
+      let i = originalFilename.lastIndexOf('\\');
+      originalFilename = originalFilename.substring(i+1);
+      console.log(originalFilename);
       await chrome.downloads.cancel(downloadItem.id);
-      cancelled = true;
-    } catch (error) {
-      console.log("catched");
+      await chrome.downloads.erase({ id: downloadItem.id });
+      await makeDownload(originalFilename);
+    } else {
+      cp = true;
     }
-  }
-  try {
-    if (downloadItem.state == "complete") {
-      await chrome.downloads.removeFile(downloadItem.id);
-    }
-  } catch (error) {
-    console.log("catched2");
-  }
-  try {
-    await chrome.downloads.erase({ id: downloadItem.id });
-  } catch (error) {
-    console.log("catched3");
-  }
-  try {
-    console.log("before download");
-    await makeDownload("file");
-  } catch (error) {
-    console.log("catched4");
   }
 });
