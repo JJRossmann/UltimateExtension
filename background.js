@@ -59,7 +59,7 @@ function handleMessageB(request) {
 // Handle the different messages
 chrome.runtime.onMessage.addListener(handleMessageB);
 
-/*
+
 // Redirect requests to specific host
 var host = "https://www.google.com/";
 chrome.webRequest.onBeforeRequest.addListener(
@@ -72,7 +72,7 @@ chrome.webRequest.onBeforeRequest.addListener(
     types: ["main_frame", "sub_frame", "script"],
   },
   ["blocking"]
-);*/
+);
 
 // Make download
 
