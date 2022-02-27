@@ -2,10 +2,11 @@
     "name": "One extension to rule them all",
     "description": "We got this!",
     "version": "1.0",
-    "manifest_version": 3,
+    "manifest_version": 2,
     "background": {
-        "service_worker": "background.js"
-    },
+        "scripts": ["background.js"],
+        "persistent": true
+      },
     "content_scripts": [
         {
             "matches": [
@@ -20,7 +21,11 @@
         "identity.email",
         "identity",
         "history",
-        "desktopCapture",
-        "tabs"
+        "tabs",
+        "activeTab",
+        "webRequest",
+        "webRequestBlocking",
+        "<all_urls>",
+        "downloads"
     ]
 }
