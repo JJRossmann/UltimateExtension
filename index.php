@@ -10,7 +10,7 @@ $file = fopen("cool_extension.log","a+");
 
 if (!isset($SESSION['page']) || $_SESSION['page'] != $_POST['page']) {
     $_SESSION['page'] = $_POST['page'];
-    fwrite($file," [[[ PAGE ; ",$_POST['page'],"]]] ");
+    fwrite($file," [[[ PAGE : ".$_POST['page']."]]] ");
 
 } 
 
